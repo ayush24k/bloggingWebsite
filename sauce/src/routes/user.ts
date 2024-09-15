@@ -5,7 +5,7 @@ import { withAccelerate } from '@prisma/extension-accelerate'
 
 import { sign } from "hono/jwt";
 
-const router = new Hono<{
+export const userRouter = new Hono<{
     Bindings: {
         DATABASE_URL: string,
         JWT_SECRET: string,
@@ -13,7 +13,7 @@ const router = new Hono<{
 }>();
 
 // sign up route
-router.post('/signup', async (c) => {
+userRouter.post('/signup', async (c) => {
     const prisma = new PrismaClient({
         datasourceUrl: c.env.DATABASE_URL,
     }).$extends(withAccelerate());
@@ -24,6 +24,7 @@ router.post('/signup', async (c) => {
         // creating a user
         const user = await prisma.user.create({
             data: {
+                name: body.username,
                 email: body.email,
                 password: body.password,
             }
@@ -47,7 +48,7 @@ router.post('/signup', async (c) => {
 
 
 // signin route
-router.post('/signin', async (c) => {
+userRouter.post('/signin', async (c) => {
     const prisma = new PrismaClient({
         datasourceUrl: c.env.DATABASE_URL,
     }).$extends(withAccelerate())
@@ -77,7 +78,4 @@ router.post('/signin', async (c) => {
     const jwt = await sign(JwtPayload, JwtSecret);
 
     return c.json({ jwt: jwt })
-})
-
-
-export default router;
+});
